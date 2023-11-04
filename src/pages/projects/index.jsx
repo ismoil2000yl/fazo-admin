@@ -1,16 +1,17 @@
 import React from 'react'
 import ContainerAll from 'moduls/container/all'
-import { get, truncate } from 'lodash'
-import { useHooks } from 'hooks'
 import { useState } from 'react'
-import { Avatar, Button, message, Pagination, Popover, Tooltip } from 'antd'
-import { Table } from 'components'
+import { Button, Card, message, Pagination, Tooltip, Popconfirm, Spin, Space } from 'antd'
+import { DeleteOutlined, EditOutlined, PaperClipOutlined } from "@ant-design/icons";
 import { usePost } from 'crud'
 import { useQueryClient } from '@tanstack/react-query'
-import Form from './create-update.jsx'
 import Content from './content'
 import axios from 'axios'
 import { useEffect } from 'react'
+const { Meta } = Card;
+import { truncate } from 'lodash'
+import { useNavigate } from 'react-router-dom'
+
 
 export const types = [
     {
@@ -26,100 +27,30 @@ export const types = [
 ]
 
 const index = () => {
-    const { params, navigate, } = useHooks()
+    const navigate = useNavigate()
     const [current, setCurrent] = useState(1);
     const [total, setTotal] = useState(0)
     const queryClient = useQueryClient()
-
-    const [modalData, setModalData] = useState({
-        isOpen: false, data: null
-    })
 
     const [contentModal, setContentModal] = useState({
         isOpen: false, data: null
     })
 
-    const [service, setService] = useState([])
+    // const [service, setService] = useState([])
 
-    const getService = async () => {
-        const data = await axios.get("http://192.168.1.195:5055/services/all")
-        setService(data.data)
-    }
+    // const getService = async () => {
+    //     const data = await axios.get("http://192.168.1.195:5055/services/all")
+    //     setService(data.data)
+    // }
     const getLength = async () => {
         const data = await axios.get("http://192.168.1.195:5055/company-details/length")
         setTotal(data?.data?.projects)
     }
 
     useEffect(() => {
-        getService()
+        // getService()
         getLength()
     }, [])
-
-    const columns = [
-        // {
-        //     title: 'Id',
-        //     dataIndex: 'id',
-        //     key: 'id',
-        // },
-        {
-            title: 'Image',
-            dataIndex: 'image',
-            key: 'image',
-            render: (value) => {
-                return <Avatar className='shadow-sm' size={"large"} src={`http://192.168.1.195:5055/projects/${value}`} />
-            }
-        },
-        {
-            title: 'Title',
-            dataIndex: 'title',
-            key: 'title'
-        },
-        {
-            title: 'Description',
-            dataIndex: 'desc',
-            key: 'desc',
-            render: (value) => {
-                return value?.length > 40 ? (
-                    <Popover title={value}>
-                        {truncate(value, { length: 40, omission: "..." })}
-                    </Popover>
-                ) : (
-                    value
-                );
-            },
-        },
-        {
-            title: 'Link',
-            dataIndex: 'link',
-            key: 'link',
-            render: (value) => {
-                return value?.length > 40 ? (
-                    <Popover title={value}>
-                        {truncate(value, { length: 20, omission: "..." })}
-                    </Popover>
-                ) : (
-                    value
-                );
-            },
-        },
-        {
-            title: 'Type',
-            dataIndex: 'status',
-            key: 'type',
-            render: (value) => {
-                return value && types.find((item) => item.value === value).label
-            }
-        },
-        {
-            title: "Category",
-            dataIndex: "serviceId",
-            key: "category",
-            render: (value) => {
-                const title = service.find(item => item.id === value)
-                return title?.title
-            }
-        },
-    ]
 
     const { mutate: deletedHandler } = usePost()
 
@@ -141,6 +72,10 @@ const index = () => {
         setCurrent(page);
     };
 
+    const cancel = (e) => {
+        message.error("Ushbu ma'lumot o'chirilmadi");
+    };
+
     return (
         <ContainerAll
             url={"/projects/all"}
@@ -156,28 +91,68 @@ const index = () => {
                     <div>
                         <div className="d-flex justify-end my-3">
                             <Tooltip placement='bottom' title={"Yangi proyekt qo'shish"}>
-                                <Button type='primary' onClick={() => setModalData({ isOpen: true, data: null })}>
+                                <Button type='primary' onClick={() => navigate("/projects-create")}>
                                     Add Projects
                                 </Button>
                             </Tooltip>
-                            <Form {...{ modalData, setModalData, types }} />
                             <Content {...{ contentModal, setContentModal }} />
                         </div>
-                        <div className="my-3">
-                            <Table
-                                meta={meta}
-                                items={items}
-                                isLoading={isLoading}
-                                columns={columns}
-                                hasDelete={true}
-                                deleteAction={(row) => deleteConfirm(get(row, "id"))}
-                                updateAction={(row) => setModalData({ isOpen: true, data: row })}
-                                hasUpdate={true}
-                                hasPagination={false}
-                                customPagination={false}
-                                hasContent={true}
-                                contentAction={(row) => setContentModal({ isOpen: true, data: row })}
-                            />
+                        <div className="
+                        my-4 gap-4 overflow-y-scroll 
+                        h-[70vh] d-flex justify-center 
+                        items-center flex-wrap w-[95%]"
+                        >
+                            {
+                                items ? items.map(item => {
+                                    let prsTitle = JSON.parse(item.title)
+                                    let prsDesc = JSON.parse(item.desc)
+                                    return (
+                                        <Card
+                                            key={item.id}
+                                            style={{
+                                                width: 300,
+                                            }}
+                                            cover={
+                                                <img
+                                                    alt="example"
+                                                    src={`http://192.168.1.195:5055/projects/${item.image}`}
+                                                />
+                                            }
+                                            actions={[
+                                                <EditOutlined key="edit" onClick={() => navigate(`/projects-update/${item.id}`)} />,
+                                                <Popconfirm
+                                                    placement="topRight"
+                                                    title={"O'chirish"}
+                                                    description={"O'chirishni xoxlaysizmi?"}
+                                                    onConfirm={() => deleteConfirm(item.id)}
+                                                    onCancel={cancel}
+                                                    okText="Ha"
+                                                    cancelText="Yo'q"
+                                                >
+                                                    <DeleteOutlined
+                                                        key={"delete"}
+                                                        className="text-red-500 cursor-pointer text-lg"
+                                                    />
+                                                </Popconfirm>,
+                                                <PaperClipOutlined
+                                                    key="content"
+                                                    onClick={() => setContentModal({ isOpen: true, data: item })}
+                                                />
+                                            ]}
+                                        >
+                                            <Meta
+                                                title={prsTitle?.uz}
+                                                description={truncate(prsDesc?.uz,
+                                                    { length: 110, omission: "..." })
+                                                }
+                                            />
+                                        </Card>
+
+                                    )
+                                }) : <Space size="middle">
+                                    <Spin tip="Loading" size="large" />
+                                </Space>
+                            }
                         </div>
                         <div className="my-2 mx-4 float-right">
                             <Pagination current={current} pageSize={5} onChange={onChange} total={total} />
