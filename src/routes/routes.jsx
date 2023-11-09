@@ -21,7 +21,9 @@ const appRoutes = (routes) => {
 
 
 const routesWrapper = () => {
-  const {isAuthenticated} = useSelector((state)=>get(state, "auth"));
+  const { isAuthenticated } = useSelector((state) => get(state, "auth"));
+  // const isAuthenticated = true;
+
   return (
     <Routes>
       <Route path="*" element={<NotFound />} />

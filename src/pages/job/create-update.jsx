@@ -18,7 +18,7 @@ const form = ({ modalData, setModalData }) => {
     const mutation = useMutation({
         mutationFn: async (values) => {
 
-            if (!modalData.data) {
+            if (!modalData?.data) {
                 return await api.post(
                     "vacancies/create",
                     values

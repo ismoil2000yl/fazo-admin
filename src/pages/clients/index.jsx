@@ -1,18 +1,22 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ContainerAll from 'moduls/container/all'
 import { get, truncate } from 'lodash'
 import { useHooks } from 'hooks'
 import { useState } from 'react'
-import { Avatar, Button, message, Popover, Tooltip } from 'antd'
+import { Avatar, Button, message, Pagination, Popover, Tooltip } from 'antd'
 import { Table } from 'components'
 import { usePost } from 'crud'
 import { useQueryClient } from '@tanstack/react-query'
-import Form from './create-update.jsx'
+// import Form from './create-update.jsx'
+import Form from './create.jsx'
 import Content from './content'
+import axios from 'axios'
 
 const index = () => {
   const { params, navigate, } = useHooks()
   const queryClient = useQueryClient()
+  const [current, setCurrent] = useState(1);
+  const [total, setTotal] = useState(0)
 
   const [modalData, setModalData] = useState({
     isOpen: false, data: null
@@ -59,13 +63,26 @@ const index = () => {
     })
   };
 
+  const onChange = (page) => {
+    setCurrent(page);
+  };
+
+  const getLength = async () => {
+    const data = await axios.get("http://192.168.1.195:5055/company-details/length")
+    setTotal(data?.data?.partners)
+  }
+
+  useEffect(() => {
+    getLength()
+  }, [])
+
   return (
     <ContainerAll
       url={"/partners/all"}
       queryKey={"clients"}
       params={{
-        take: "10",
-        page: get(params, "page", 1)
+        take: 5,
+        offset: current
       }}
     >
       {({ items, isLoading, meta }) => {
@@ -92,10 +109,13 @@ const index = () => {
                 updateAction={(row) => setModalData({ isOpen: true, data: row })}
                 hasUpdate={true}
                 hasPagination={false}
-                customPagination={true}
+                customPagination={false}
                 hasContent={true}
                 contentAction={(row) => setContentModal({ isOpen: true, data: row })}
               />
+            </div>
+            <div className="my-2 mx-4 float-right">
+              <Pagination current={current} pageSize={5} onChange={onChange} total={total} />
             </div>
           </div>
         )

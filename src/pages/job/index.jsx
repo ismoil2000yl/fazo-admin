@@ -7,7 +7,8 @@ import { Avatar, Button, message, Popover, Tooltip } from 'antd'
 import { Table } from 'components'
 import { usePost } from 'crud'
 import { useQueryClient } from '@tanstack/react-query'
-import Form from './create-update.jsx'
+// import Form from './create-update.jsx'
+import Form from './create'
 
 const index = () => {
   const { params, navigate, } = useHooks()
